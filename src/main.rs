@@ -103,7 +103,7 @@ fn day2(input: Option<&String>) -> i32 {
 }
 
 fn no_day(day: u8) -> i32 {
-    eprintln!("still loading day {} from the future.", day);
+    eprintln!("Still loading day {} from the future.", day);
     1
 }
 
