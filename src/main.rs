@@ -1,4 +1,5 @@
 use std::env;
+use std::cmp;
 
 fn day0() -> i32 {
     println!("{}", "In the beginning was the NULL, and it was without form, and void*.");
@@ -53,8 +54,54 @@ fn day1(input: Option<&String>) -> i32 {
     0
 }
 
+fn day2(input: Option<&String>) -> i32 {
+    // input: a spreadsheet, such as "5 1 9 5, 7 5 3, 2 4 6 8"
+    // checksum: sum of a value per row
+    // row value: difference between largest and smallest cells
+    // cell data: ???; 1-digit integers are provided in the lone example.
+    let s = input.expect("must have 1 spreadsheet input, e.g. 'i j k, l m n' (2r x 3c)");
+    let bad_input = "Spreadsheet data MUST be numeric";
+
+    // the answer
+    let mut checksum: i64 = 0;
+
+    // We can do this in-place, in one pass.
+    // for each line, "get the row value"...
+    // ...which is the difference between min and max cell values...
+    // ...so we look at each cell and keep a running min + max.
+    let lines = s.split(',');
+    for l in lines {
+        let mut cells = l.trim().split_whitespace();
+        // We can't put min/max into the if-let because checksum uses them, too
+        let mut min = 0;
+        let mut max = 0;
+
+        // Pull the first value off of cells, then iterate over the rest
+        // (Can we have a blank row? It is unspecified.  We will use 0 for it.)
+        if let Some(value) = cells.next() {
+            // once again, non-numeric input seems to be undefined.
+            // maybe the site never gives us invalid input?
+            // in any case, let's crash fast and hard on unexpected errors.
+            let mut v: i64 = value.parse().expect(bad_input);
+            min = v;
+            max = v;
+            for cell in cells {
+                v = cell.parse().expect(bad_input);
+                min = cmp::min(min, v);
+                max = cmp::max(max, v);
+            }
+        }
+
+        // All (0 to N) cells processed, add to checksum
+        checksum += max - min;
+    }
+
+    println!("{}", checksum);
+    0
+}
+
 fn no_day(day: u8) -> i32 {
-    eprintln!("Still loading day {} from the future.", day);
+    eprintln!("still loading day {} from the future.", day);
     1
 }
 
@@ -96,7 +143,8 @@ fn real_main() -> i32 {
     match day {
         0 => day0(),
         1 => day1(args.get(2)),
-        2...24 => no_day(day),
+        2 => day2(args.get(2)),
+        3...24 => no_day(day),
         25 => christmas_day(),
         _ => never_day(),
     }
