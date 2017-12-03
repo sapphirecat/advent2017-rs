@@ -76,11 +76,18 @@ fn day1(input: Option<&String>) -> i32 {
 }
 
 fn day2(input: Option<&String>) -> i32 {
-    // input: a spreadsheet, such as "5 1 9 5, 7 5 3, 2 4 6 8"
+    let data = slurp(input);
+    if let Err(_e) = data {
+        eprintln!("Expected 1 spreadsheet input, e.g. 'i j k, l m n' (2r x 3c)");
+        eprintln!("(Yes, one line; it used to be a CLI arg.)");
+        return 1;
+    }
+    let s: String = data.unwrap();
+
+    // input: a spreadsheet (in a file), such as "5 1 9 5, 7 5 3, 2 4 6 8"
     // checksum: sum of a value per row
     // row value: difference between largest and smallest cells
     // cell data: ???; 1-digit integers are provided in the lone example.
-    let s = input.expect("must have 1 spreadsheet input, e.g. 'i j k, l m n' (2r x 3c)");
     let bad_input = "Spreadsheet data MUST be numeric";
 
     // the answer
