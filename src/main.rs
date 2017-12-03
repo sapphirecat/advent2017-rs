@@ -53,9 +53,34 @@ fn day1(input: Option<&String>) -> i32 {
     0
 }
 
-fn no_day() -> i32 {
-    eprintln!("{}", "That day is not a real day.");
+fn no_day(day: u8) -> i32 {
+    eprintln!("Still loading day {} from the future.", day);
     1
+}
+
+fn never_day() -> i32 {
+    // just a self-indulgent Discworld reference
+    eprintln!("+++ OUT OF CHEESE ERROR +++");
+    2
+}
+
+fn christmas_day() -> i32 {
+    let lyrics: [&str; 10] = [
+        "Hark! The herald angels sing",
+        "'Glory to the newborn king!",
+        "Peace on Earth and mercy mild",
+        "God and sinners reconciled!'",
+        "Joyful, all ye nations rise",
+        "Join the triumph of the skies",
+        "With the angelic host proclaim:",
+        "'Christ is born in Bethlehem'",
+        "Hark! The herald angels sing",
+        "'Glory to the newborn king!'",
+    ];
+    for i in lyrics.iter() {
+        println!("\t{}", i);
+    }
+    0
 }
 
 fn real_main() -> i32 {
@@ -71,7 +96,9 @@ fn real_main() -> i32 {
     match day {
         0 => day0(),
         1 => day1(args.get(2)),
-        _ => no_day(),
+        2...24 => no_day(day),
+        25 => christmas_day(),
+        _ => never_day(),
     }
 }
 
