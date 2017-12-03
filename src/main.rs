@@ -1,5 +1,26 @@
-use std::env;
 use std::cmp;
+use std::env;
+use std::fs::File;
+use std::io::Read;
+
+fn slurp_to_result(filename: &str) -> Result<String, std::io::Error> {
+    let mut file = File::open(&filename)?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    Ok(contents)
+}
+
+fn slurp(input: Option<&String>) -> Result<String, std::io::Error> {
+    let filename = input.expect("missing required input filename");
+
+    let rv = slurp_to_result(&filename[..]);
+    if let Err(e) = rv {
+        eprintln!("Error reading {}: {}", filename, e);
+        Err(e)
+    } else {
+        rv
+    }
+}
 
 fn day0() -> i32 {
     println!("{}", "In the beginning was the NULL, and it was without form, and void*.");
@@ -7,11 +28,11 @@ fn day0() -> i32 {
 }
 
 fn day1(input: Option<&String>) -> i32 {
-    let s = input.expect("needed 1 symbol string of input");
-    // problem is undefined for strings of these lengths
-    if s.len() <= 1 {
-        return 0;
+    let data = slurp(input);
+    if let Err(_e) = data {
+        return 1;
     }
+    let s: String = data.unwrap();
 
     // here's our inhuman answer.
     let mut sum: u32 = 0;
@@ -30,7 +51,7 @@ fn day1(input: Option<&String>) -> i32 {
     // 'left' starts at 0 and runs to the penultimate char.
     // 'right' starts at 1 and runs to the final char in the `for` loop.
     // then, we compare the last char, still waiting in 'left', to char 0.
-    let mut left = s.chars();
+    let mut left = s.trim().chars();
     let mut right = left.clone();
     let zero_char = right.next().unwrap(); // right=[1], save s[0]
 
