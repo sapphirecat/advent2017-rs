@@ -69,6 +69,7 @@ fn day2(input: Option<&String>) -> i32 {
     // for each line, "get the row value"...
     // ...which is the difference between min and max cell values...
     // ...so we look at each cell and keep a running min + max.
+    // And then use that min/max to add to the checksum.
     let lines = s.split(',');
     for l in lines {
         let mut cells = l.trim().split_whitespace();
@@ -96,6 +97,7 @@ fn day2(input: Option<&String>) -> i32 {
         checksum += max - min;
     }
 
+    // display and return
     println!("{}", checksum);
     0
 }
