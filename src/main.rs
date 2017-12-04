@@ -130,6 +130,45 @@ fn day2(input: Option<&String>) -> i32 {
     0
 }
 
+fn day3(input: Option<&String>) -> i32 {
+    // Gather input.
+    let s = input.expect("Starting position in memory required");
+    let start: i32 = s.parse().expect("Starting position in memory MUST be numeric");
+    if start == 1 {
+        println!("0, you joker");
+        return 0;
+    }
+
+    // Not going to lie, getting this algorithm took a lot of thinking.
+    // Find the ring number by comparing squares, iteratively.
+    let mut order: i32 = 3;
+    while (order*order) < start {
+        order += 2;
+    }
+    //println!("order is {}", order);
+
+    // Find the nearest corners to our position.
+    let far_corner = order*order;
+    let prev_order = order - 2;
+    let size = far_corner - prev_order*prev_order;
+    let quad = size / 4;
+    let mut corner = far_corner;
+    // specifically, find the corner immediately before our position.
+    while start < corner {
+        corner -= quad;
+    }
+
+    // Moves = ABS(position, AVERAGE(nearest 2 corners)) + (k-1)/2
+    let center_of_edge = (corner + corner + quad) / 2;
+    let in_ring_moves = start - center_of_edge;
+    let cross_ring_moves = (order - 1) / 2;
+    //println!("{} moves in-ring, {} moves centerward", in_ring_moves.abs(), cross_ring_moves);
+    let moves = in_ring_moves.abs() + cross_ring_moves;
+
+    println!("{}", moves);
+    0
+}
+
 fn no_day(day: u8) -> i32 {
     eprintln!("Still loading day {} from the future.", day);
     1
@@ -174,7 +213,8 @@ fn real_main() -> i32 {
         0 => day0(),
         1 => day1(args.get(2)),
         2 => day2(args.get(2)),
-        3...24 => no_day(day),
+        3 => day3(args.get(2)),
+        4...24 => no_day(day),
         25 => christmas_day(),
         _ => never_day(),
     }
