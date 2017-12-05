@@ -1,7 +1,12 @@
 use std::cmp;
+use std::collections::HashSet;
 use std::env;
+use std::error::Error; // why ISN'T this in the std::prelude, anyway?
 use std::fs::File;
-use std::io::Read;
+use std::io::BufReader;
+use std::io::prelude::*;
+use std::iter::Iterator;
+use std::iter::FromIterator;
 
 fn slurp_to_result(filename: &str) -> Result<String, std::io::Error> {
     let mut file = File::open(&filename)?;
@@ -169,6 +174,70 @@ fn day3(input: Option<&String>) -> i32 {
     0
 }
 
+fn sort_chars(w: &str) -> String {
+    let mut cv: Vec<_> = w.chars().collect();
+    cv.sort_unstable();
+    String::from_iter(cv)
+}
+
+fn day4(input: Option<&String>) -> i32 {
+    let filename = input.expect("input filename required");
+
+    // Today, we want to iterate over lines, so no slurp().
+    let file = match File::open(&filename) {
+        Ok(f) => f,
+        Err(why) => {
+            eprintln!("Error opening {}: {}", filename, why.description());
+            return 1;
+        }
+    };
+
+    let reader = BufReader::new(file);
+    let mut valid = 0;
+    let mut valid_part2 = 0;
+    'passphrase: for line in reader.lines().map(|l| l.unwrap()) {
+        // PART ONE
+        // Split the line into words.  Use a HashSet to see if we've previously
+        // seen it.  If not, add it to the HashSet.  Otherwise, this is an
+        // invalid passphrase, and we can skip ahead to the next one.
+        let mut seen = HashSet::new();
+        for word in line.split(' ') {
+            if seen.contains(word) {
+                continue 'passphrase; // Invalid! Continue on next line.
+            }
+            seen.insert(word);
+        }
+
+        valid += 1; // Processed entire line, and saw no identical words.
+
+        // PART TWO
+        // for all the words we've seen, make a copy with their chars sorted.
+        // then, do the same HashSet dance.  "sorted" is the vector with
+        // individual words; "anagrams" is the HashSet of seen anagrams.  The
+        // latter points into the former, so must be declared later, as it will
+        // be dropped first (drops occur in LIFO order.)
+        let mut sorted: Vec<String> = Vec::new();
+        let mut anagrams = HashSet::new();
+        for word in &seen {
+            // sort_chars gives us ownership of a String that's copied+sorted.
+            sorted.push(sort_chars(word));
+        }
+        seen.clear(); // Free a bit of RAM early.
+        for w in &sorted {
+            if anagrams.contains(w) {
+                continue 'passphrase;
+            }
+            anagrams.insert(w);
+        }
+
+        valid_part2 += 1; // Found no identical anagrams.
+    }
+
+    println!("part1: {} valid", valid);
+    println!("part2: {} valid", valid_part2);
+    0
+}
+
 fn no_day(day: u8) -> i32 {
     eprintln!("Still loading day {} from the future.", day);
     1
@@ -214,7 +283,8 @@ fn real_main() -> i32 {
         1 => day1(args.get(2)),
         2 => day2(args.get(2)),
         3 => day3(args.get(2)),
-        4...24 => no_day(day),
+        4 => day4(args.get(2)),
+        5...24 => no_day(day),
         25 => christmas_day(),
         _ => never_day(),
     }
