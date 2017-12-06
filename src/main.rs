@@ -106,15 +106,8 @@ fn day1(input: Option<&String>) -> i32 {
     0
 }
 
-fn day2(input: Option<&String>) -> i32 {
-    let data = slurp(input);
-    if let Err(_e) = data {
-        eprintln!("Expected 1 spreadsheet input, e.g. 'i j k, l m n' (2r x 3c)");
-        eprintln!("(Yes, one line; it used to be a CLI arg.)");
-        return 1;
-    }
-    let s: String = data.unwrap();
 
+fn day2_part1(s: &str) -> i64 {
     // input: a spreadsheet (in a file), such as "5 1 9 5, 7 5 3, 2 4 6 8"
     // checksum: sum of a value per row
     // row value: difference between largest and smallest cells
@@ -156,8 +149,46 @@ fn day2(input: Option<&String>) -> i32 {
         checksum += max - min;
     }
 
+    checksum
+}
+
+fn day2_part2(s: &str) -> i64 {
+    let mut checksum: i64 = 0;
+
+    for l in s.split(',') {
+        let mut cells: Vec<i64> = l.trim().split_whitespace()
+            .map(|cell| cell.parse().unwrap())
+            .collect();
+        cells.sort_unstable();
+
+        // good news: the puzzle input was all positive integers
+        'line: for i in 0..cells.len() {
+            let x = cells[i];
+            for j in i..cells.len() {
+                let y = cells[j];
+                if y > x && y % x == 0 {
+                    checksum += y/x;
+                    break 'line;
+                }
+            }
+        }
+    }
+
+    checksum
+}
+
+fn day2(input: Option<&String>) -> i32 {
+    let data = slurp(input);
+    if let Err(_e) = data {
+        eprintln!("Expected 1 spreadsheet input, e.g. 'i j k, l m n' (2r x 3c)");
+        eprintln!("(Yes, one line; it used to be a CLI arg.)");
+        return 1;
+    }
+    let s: String = data.unwrap();
+
     // display and return
-    println!("{}", checksum);
+    println!("part 1: {}", day2_part1(&s));
+    println!("part 2: {}", day2_part2(&s));
     0
 }
 
