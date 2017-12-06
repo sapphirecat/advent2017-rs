@@ -395,6 +395,8 @@ fn never_day() -> i32 {
 }
 
 fn christmas_day() -> i32 {
+    // I see there's a 25th day's puzzle.
+    // We'll have to delete this eventually, but for now, <3
     let lyrics: [&str; 10] = [
         "Hark! The herald angels sing",
         "'Glory to the newborn king!",
