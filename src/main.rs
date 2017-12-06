@@ -32,13 +32,7 @@ fn day0() -> i32 {
     0
 }
 
-fn day1(input: Option<&String>) -> i32 {
-    let data = slurp(input);
-    if let Err(_e) = data {
-        return 1;
-    }
-    let s: String = data.unwrap();
-
+fn day1_part1(s: &str) -> u32 {
     // here's our inhuman answer.
     let mut sum: u32 = 0;
 
@@ -75,8 +69,40 @@ fn day1(input: Option<&String>) -> i32 {
         sum += zero_int;
     }
 
-    // show result and return success
-    println!("{}", sum);
+    // return answer
+    sum
+}
+
+fn day1_part2(s: &str) -> u32 {
+    let mut left = s.trim().chars();
+    let half = left.clone().count() / 2;
+    let right = left.clone().skip(half);
+
+    let mut sum: u32 = 0;
+    let base = 10;
+
+    for cur in right {
+        let prev = left.next().unwrap();
+        if prev == cur {
+            // because it's halfway around, each side will match itself.
+            // e.g. 1212 will add 1 both times it sees 1.
+            // we're only doing half a pass, so count both sides at once.
+            sum += 2 * cur.to_digit(base).unwrap();
+        }
+    }
+
+    sum
+}
+
+fn day1(input: Option<&String>) -> i32 {
+    let data = slurp(input);
+    if let Err(_e) = data {
+        return 1;
+    }
+    let s: String = data.unwrap();
+
+    println!("part 1: {}", day1_part1(&s));
+    println!("part 2: {}", day1_part2(&s));
     0
 }
 
