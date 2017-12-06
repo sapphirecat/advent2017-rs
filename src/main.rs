@@ -238,6 +238,94 @@ fn day4(input: Option<&String>) -> i32 {
     0
 }
 
+fn day5_read_file(filename: &str) -> Vec<i32> {
+    let file = match File::open(&filename) {
+        Ok(f) => f,
+        Err(why) => {
+            eprintln!("Error opening {}: {}", filename, why.description());
+            return Vec::new();
+        }
+    };
+
+    let reader = BufReader::new(file);
+    reader.lines()
+        .map(|l| l.unwrap().parse().expect("all offsets MUST be numeric"))
+        .collect()
+}
+
+fn day5_move (offset: i32, head: usize, max_head: usize) -> Option<usize> {
+    let magnitude = offset.abs() as usize;
+
+    if offset < 0 && magnitude > head {
+        None // exited left of tape
+    } else if offset > 0 && (magnitude > max_head || (max_head - magnitude) < head) {
+        None // exited right of tape
+    } else if offset >= 0 {
+        Some(head + magnitude)
+    } else {
+        Some(head - magnitude)
+    }
+}
+
+fn day5_part1(mut tape: Vec<i32>) {
+    let mut head: usize = 0;
+    let mut hops: usize = 0;
+    let end = tape.len() - 1;
+    loop {
+        let offset = tape[head]; // save offset
+
+        tape[head] += 1; // modify cell
+        hops += 1; // count the move
+
+        match day5_move(offset, head, end) {
+            None => break, // exited tape
+            Some(x) => head = x, // moved on tape
+        }
+    }
+
+    println!("Part 1: {}", hops);
+}
+
+fn day5_part2(mut tape: Vec<i32>) {
+    let mut head: usize = 0;
+    let mut hops: usize = 0;
+    let end = tape.len() - 1;
+    loop {
+        let offset = tape[head];
+
+        if offset >= 3 {
+            tape[head] -= 1;
+        } else {
+            tape[head] += 1;
+        }
+        hops += 1;
+
+        match day5_move(offset, head, end) {
+            None => break,
+            Some(x) => head = x,
+        }
+    }
+
+    println!("Part 2: {}", hops);
+}
+
+fn day5(input: Option<&String>) -> i32 {
+    let filename = input.expect("input filename required (tape input, 1 offset per line)");
+
+    let tape = day5_read_file(&filename);
+    if tape.len() == 0 {
+        eprintln!("No tape");
+        return 1;
+    }
+
+    day5_part1(tape);
+
+    let tape = day5_read_file(&filename);
+    day5_part2(tape);
+
+    0
+}
+
 fn no_day(day: u8) -> i32 {
     eprintln!("Still loading day {} from the future.", day);
     1
@@ -284,7 +372,8 @@ fn real_main() -> i32 {
         2 => day2(args.get(2)),
         3 => day3(args.get(2)),
         4 => day4(args.get(2)),
-        5...24 => no_day(day),
+        5 => day5(args.get(2)),
+        6...24 => no_day(day),
         25 => christmas_day(),
         _ => never_day(),
     }
