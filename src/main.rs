@@ -383,6 +383,82 @@ fn day5(input: Option<&String>) -> i32 {
     0
 }
 
+fn day6_hash_state (v: &Vec<u32>) -> String {
+    // create a hashable value from a vec.
+    // first, format it uniquely
+    // then, join all the formats into a string
+    v.iter().map(|n| format!("{}~", n)).collect()
+}
+
+fn day6_redistribute(banks: &mut Vec<u32>) {
+    let len = banks.len();
+    if len > std::u32::MAX as usize {
+        panic!("len {} > u32::MAX", len);
+    }
+    let max = *banks.iter().max().unwrap();
+    // find the first bank with the max number of items
+    let mut at = banks.iter().enumerate()
+        .find(|e| *e.1 == max).unwrap().0;
+
+    // redistribute items in that bank
+    let mut max_moves = len + 3; // runaway loop breaker
+    let mut rest = banks[at];
+    let segment = (f64::from(rest) / f64::from(len as u32)).ceil() as u32;
+    banks[at] = 0; // empty full bank, keep our place...
+    while rest > 0 {
+        at = (at + 1) % len; // move to next bank
+
+        // distribute a chunk into this bank
+        let moved = cmp::min(segment, rest);
+        banks[at] += moved;
+        rest -= moved;
+
+        max_moves -= 1;
+        if max_moves == 0 {
+            panic!("exhausted max moves, moving {} by {}", max, segment);
+        }
+    }
+}
+
+fn day6(input: Option<&String>) -> i32 {
+    let data = slurp(input);
+    if let Err(_e) = data {
+        eprintln!("Expected 1 line of memory bank input, e.g. '2 3 7 1'");
+        return 1;
+    }
+    let s: String = data.unwrap();
+
+    let mut banks: Vec<u32> = s.split_whitespace()
+        .map(|n| n.parse().expect("cell sizes MUST be u32 values"))
+        .collect();
+    let mut states: Vec<String> = Vec::new();
+
+    // save initial state
+    states.push(day6_hash_state(&banks));
+
+    loop {
+        day6_redistribute(&mut banks);
+
+        let next_state = day6_hash_state(&banks);
+        if let Some(i) = states.iter().enumerate().find(|e| *e.1 == next_state) {
+            println!("part 2: {}", states.len() - i.0);
+            break;
+        }
+        states.push(next_state); // push new state
+
+        // Infinite loop breaker.  Lucky: picked arbitrarily, and never hit.
+        if states.len() > 10240 {
+            panic!("self destruct button pressed");
+        }
+    }
+
+    // There's no "+1" needed because we pushed the initial state in.  If the
+    // first redistribution yielded a duplicate state, we exited the loop with
+    // states.len() == 1, and the duplicate state unpushed.
+    println!("part 1: {}", states.len());
+    0
+}
+
 fn no_day(day: u8) -> i32 {
     eprintln!("Still loading day {} from the future.", day);
     1
@@ -432,7 +508,8 @@ fn real_main() -> i32 {
         3 => day3(args.get(2)),
         4 => day4(args.get(2)),
         5 => day5(args.get(2)),
-        6...24 => no_day(day),
+        6 => day6(args.get(2)),
+        7...24 => no_day(day),
         25 => christmas_day(),
         _ => never_day(),
     }
