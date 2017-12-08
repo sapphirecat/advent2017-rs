@@ -1,4 +1,8 @@
+extern crate regex;
+
+use regex::Regex;
 use std::cmp;
+use std::collections::HashMap;
 use std::collections::HashSet;
 use std::env;
 use std::error::Error; // why ISN'T this in the std::prelude, anyway?
@@ -459,6 +463,52 @@ fn day6(input: Option<&String>) -> i32 {
     0
 }
 
+fn day7(input: Option<&String>) -> i32 {
+    // today, we're going to slurp.  owning the entire file data is going to
+    // simplify things, at the price of some RAM.
+    let data = slurp(input);
+    if let Err(_e) = data {
+        eprintln!("expected a file in 'w (42) -> x, y, z' format");
+        return 1;
+    };
+    let s = data.unwrap();
+
+    // as usual, nobody specified the limits on program names. let's accept
+    // "unicode non-whitespace" even if that probably means other control chars.
+    let line_re = Regex::new(r"(?m)^(\S+) \(\d+\)(?: -> (.*))?$").unwrap();
+    let support_re = Regex::new(r",\s*").unwrap();
+    let mut programs: HashMap<&str, bool> = HashMap::new();
+    for line in line_re.captures_iter(&s) {
+        // insert this program if it's not there.
+        // can't use line[1], because "program" must outlive "line".
+        let program = line.get(1).unwrap().as_str();
+        if ! programs.contains_key(program) {
+            programs.insert(program, false);
+        }
+
+        // mark all supported programs as seen and supported
+        line.get(2)
+            .and_then(|supported| {
+                support_re.split(supported.as_str().trim())
+                    .for_each(|program| {
+                        programs.insert(program, true);
+                    });
+                // must return this result to be thrown away
+                // because Option doesn't have for_each
+                Some(supported)
+            });
+    }
+
+    // find the unsupported program
+    for (program, supported) in &programs {
+        if ! supported {
+            println!("part 1: {}", program);
+        }
+    }
+
+    0
+}
+
 fn no_day(day: u8) -> i32 {
     eprintln!("Still loading day {} from the future.", day);
     1
@@ -509,7 +559,8 @@ fn real_main() -> i32 {
         4 => day4(args.get(2)),
         5 => day5(args.get(2)),
         6 => day6(args.get(2)),
-        7...24 => no_day(day),
+        7 => day7(args.get(2)),
+        8...24 => no_day(day),
         25 => christmas_day(),
         _ => never_day(),
     }
